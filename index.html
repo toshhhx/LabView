@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#020d16">
+    <title>LABVIEW Laboratory Safety Simulation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Fixed application header: brand, total score, current level, and sound control. -->
+   <header class="app-header">
+    <button id="homeButton" class="brand" type="button" aria-label="Return to home">
+        <span class="brand-icon"><img class="px-icon" src="assets/icons/flask.svg" alt=""></span>Lab<span>View</span>
+    </button>
+    <p class="tagline">LEARN <i>/</i> EXPLORE <i>/</i> STAY SAFE</p>
+
+    <nav class="main-nav" aria-label="Current section">
+        <button class="nav-link active" id="currentTab" type="button" aria-current="page" tabindex="-1">
+            <img class="px-icon" src="assets/icons/home.svg" alt=""><span id="currentTabLabel">Home</span>
+        </button>
+    </nav>
+
+    <div class="header-stats" aria-label="Game status">
+        <span><img class="px-icon" src="assets/icons/star.svg" alt=""> <strong id="scoreValue">0</strong></span>
+        <span>Level <strong id="levelValue">1</strong>/5</span>
+        <!-- Master volume for music + sound effects (controlled by volume.js). -->
+        <label class="volume-wrap" title="Volume">
+            <svg viewBox="0 0 12 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 3h2l3-3h1v10H5L2 7H0z" fill="currentColor"/></svg>
+            <input id="volumeSlider" class="volume-slider" type="range" min="0" max="100" step="1" value="100" aria-label="Volume">
+        </label>
+        <!-- Background music on / off (controlled by music.js). -->
+        <button id="musicToggle" class="sfx-toggle music-toggle" type="button" aria-pressed="true" aria-label="Background music on">
+            <svg viewBox="0 0 12 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M4 0h7v2H6v6H4zM0 6h4v3H0z" fill="currentColor"/><path class="sfx-x" d="M7 4h1v1H7zM8 5h1v1H8zM9 6h1v1H9zM10 7h1v1h-1zM10 4h1v1h-1zM9 5h1v1H9zM8 6h1v1H8zM7 7h1v1H7z" fill="currentColor"/></svg>
+        </button>
+        <!-- Sound effects on / off (controlled by sfx.js). -->
+        <button id="sfxToggle" class="sfx-toggle" type="button" aria-pressed="true" aria-label="Sound effects on">
+            <svg viewBox="0 0 12 10" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 3h2l3-3h1v10H5L2 7H0z" fill="currentColor"/><path class="sfx-waves" d="M8 3h1v4H8zM10 1h1v8h-1z" fill="currentColor"/><path class="sfx-x" d="M7 2h1v1H7zM8 3h1v1H8zM9 4h1v1H9zM10 5h1v1h-1zM11 6h1v1h-1zM11 2h1v1h-1zM10 3h1v1h-1zM8 5h1v1H8zM7 6h1v1H7z" fill="currentColor"/></svg>
+        </button>
+    </div>
+</header>
+
+    <main>
+        <!-- HOME SCREEN: Introduces the simulation and starts the level-selection map. -->
+        <section id="homeScreen" class="screen active hero-screen">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content">
+        <small class="eyebrow">GAMIFIED LABORATORY SAFETY SIMULATION</small>
+        <h1>Enter the lab.<br><em>Control the risk.</em></h1>
+        <p>Inspect realistic laboratory rooms, locate the exact hazard, and choose the safest response.</p>
+
+        <div class="hero-buttons">
+            <button id="startButton" class="pixel-btn pixel-green" type="button"><img class="px-icon" src="assets/icons/arrow.svg" alt=""> Enter Laboratory</button>
+        </div>
+
+        <div class="chips">
+            <span class="chip" tabindex="0" data-tip="Examine items around the lab to spot what is unsafe or out of place."><img class="px-icon" src="assets/icons/search.svg" alt=""> Object Inspection</span>
+            <span class="chip" tabindex="0" data-tip="Light up dark corners of the room to uncover hidden hazards."><img class="px-icon" src="assets/icons/flashlight.svg" alt=""> Flashlight</span>
+            <span class="chip" tabindex="0" data-tip="Learn which protective gear fits each situation, like gloves, goggles and lab coats."><img class="px-icon" src="assets/icons/shield.svg" alt=""> PPE Check</span>
+            <span class="chip" tabindex="0" data-tip="Race the clock and pick the safest response before time runs out."><img class="px-icon" src="assets/icons/clock.svg" alt=""> Timed Missions</span>
+        </div>
+
+        <!-- Rotating safety tip (text is changed by fx.js) -->
+        <div class="safety-tip" id="safetyTip">
+            <img class="px-icon px-md" src="assets/icons/shield.svg" alt="">
+            <div>
+                <small>SAFETY TIP</small>
+                <span id="tipText">Always read the chemical label before you use or mix anything.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="feature-strip">
+        <div class="feature"><span class="f-icon"><img class="px-icon px-lg" src="assets/icons/shield.svg" alt=""></span><div><h3>Build Safer Habits</h3><p>Learn proper safety practices through interactive scenarios.</p></div></div>
+        <div class="feature"><span class="f-icon"><img class="px-icon px-lg" src="assets/icons/flask.svg" alt=""></span><div><h3>Face Real Hazards</h3><p>Explore lifelike laboratory rooms and identify potential risks.</p></div></div>
+        <div class="feature"><span class="f-icon"><img class="px-icon px-lg" src="assets/icons/trophy.svg" alt=""></span><div><h3>Get Instant Feedback</h3><p>Make decisions, see the results, and learn from your mistakes.</p></div></div>
+        <div class="feature"><span class="f-icon"><img class="px-icon px-lg" src="assets/icons/book_red.svg" alt=""></span><div><h3>Be Ready for Real Life</h3><p>Gain confidence for your clinical and laboratory journey.</p></div></div>
+    </div>
+    </section>
+
+        <!-- MAP SCREEN: JavaScript creates one selectable card for each level. -->
+        <section id="mapScreen" class="screen content-screen">
+            <div class="section-heading">
+                <div>
+                    <small>MISSION CONTROL</small>
+                    <h2>Select a laboratory zone</h2>
+                    <p class="section-sub">Pick a zone, spot the hazard, and earn up to 100 points per mission.</p>
+                </div>
+                <div class="overall-progress">
+                    <span id="overallText">0% complete</span>
+                    <div class="progress-track"><i id="overallBar"></i></div>
+                </div>
+            </div>
+            <!-- Message from the lab supervisor, written for the player by script.js (updateLabCall). -->
+            <div class="lab-call" id="labCall" aria-live="polite">
+                <div class="lc-avatar" aria-hidden="true">
+                    <svg viewBox="0 0 12 14" shape-rendering="crispEdges"><rect x="3" y="0" width="6" height="1" fill="#4a2f22"/><rect x="2" y="1" width="8" height="1" fill="#4a2f22"/><rect x="2" y="2" width="1" height="1" fill="#4a2f22"/><rect x="3" y="2" width="6" height="1" fill="#f2c9a0"/><rect x="9" y="2" width="1" height="1" fill="#4a2f22"/><rect x="1" y="3" width="10" height="1" fill="#3a7fa3"/><rect x="1" y="4" width="1" height="1" fill="#3a7fa3"/><rect x="2" y="4" width="3" height="1" fill="#a3f3ff"/><rect x="5" y="4" width="2" height="1" fill="#3a7fa3"/><rect x="7" y="4" width="3" height="1" fill="#a3f3ff"/><rect x="10" y="4" width="1" height="1" fill="#3a7fa3"/><rect x="2" y="5" width="8" height="1" fill="#f2c9a0"/><rect x="3" y="6" width="6" height="1" fill="#f2c9a0"/><rect x="5" y="6" width="2" height="1" fill="#b8434f"/><rect x="4" y="7" width="4" height="1" fill="#e0aa7e"/><rect x="2" y="8" width="3" height="1" fill="#f1fbff"/><rect x="5" y="8" width="2" height="1" fill="#28d3f5"/><rect x="7" y="8" width="3" height="1" fill="#f1fbff"/><rect x="1" y="9" width="4" height="1" fill="#f1fbff"/><rect x="5" y="9" width="2" height="1" fill="#28d3f5"/><rect x="7" y="9" width="4" height="1" fill="#f1fbff"/><rect x="0" y="10" width="12" height="4" fill="#f1fbff"/><rect x="5" y="10" width="2" height="4" fill="#cfe6f2"/><rect x="8" y="11" width="2" height="1" fill="#9cb6c5"/></svg>
+                </div>
+                <div class="lc-bubble">
+                    <div class="lc-top">
+                        <small class="lc-from"><span class="lc-dot"></span>INCOMING MESSAGE · LAB SUPERVISOR</small>
+                        <span class="lc-right">
+                            <span class="lc-player"><span class="lc-pav" id="lcAvatar"></span><b id="lcPlayerName"></b></span>
+                            <button id="changeName" class="lc-change" type="button">Not you? Change</button>
+                        </span>
+                    </div>
+                    <h3 id="lcGreeting">Hi, Scientist!</h3>
+                    <p id="lcText"></p>
+                    <div class="lc-chips" aria-hidden="true">
+                        <span>5 zones</span><span>60 sec each</span><span>100 pts per hazard</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="levelCards" class="level-cards"></div>
+            <div class="back-wrap">
+                <button id="backButton" class="pixel-btn pixel-blue back-btn" type="button">
+                    <img class="px-icon" src="assets/icons/arrow.svg" alt=""> Back
+                </button>
+                <!-- Appears once all zones are completed (controlled by script.js). -->
+                <button id="viewReportButton" class="pixel-btn pixel-green" type="button" hidden>
+                    <img class="px-icon" src="assets/icons/trophy.svg" alt=""> View Final Review
+                </button>
+            </div>
+        </section>
+
+        <!-- MISSION SCREEN: Contains the scene, hazard marker, controls, evidence, and question panel. -->
+        <section id="missionScreen" class="screen">
+            <div class="mission-header">
+                <span id="missionTag">LEVEL 01</span>
+                <div class="progress-track"><i id="missionBar"></i></div>
+                <span><img class="px-icon" src="assets/icons/clock.svg" alt=""> <strong id="timerValue">60</strong>s</span>
+            </div>
+
+            <div class="mission-layout">
+                <!-- Interactive laboratory viewport. -->
+                <div id="sceneViewport" class="scene-viewport">
+                    <div id="scenePhoto" class="scene-photo"></div>
+                    <div id="flashlightOverlay" class="flashlight-overlay"></div>
+
+                    <!-- Level 1 only (shown by mission.js): dark lab, big flashlight, ambience. -->
+                    <div id="sceneAmbient" class="scene-ambient l1-only" aria-hidden="true"></div>
+                    <div id="darkOverlay" class="dark-overlay l1-only" aria-hidden="true"></div>
+                    <div class="l1-lamps l1-only" aria-hidden="true"><i></i><i></i></div>
+                    <button id="bigFlashlight" class="big-flashlight l1-only" type="button" aria-pressed="false" aria-label="Turn the flashlight on">
+                        <svg class="bf-sprite" viewBox="0 0 28 12" shape-rendering="crispEdges" aria-hidden="true"><rect x="2" y="0" width="9" height="1" fill="#3a7fa3"/><rect x="2" y="1" width="1" height="1" fill="#3a7fa3"/><rect x="3" y="1" width="7" height="1" fill="#b8c9d4"/><rect x="10" y="1" width="1" height="1" fill="#3a7fa3"/><rect x="0" y="2" width="3" height="1" fill="#3a7fa3"/><rect x="3" y="2" width="7" height="1" fill="#b8c9d4"/><rect x="10" y="2" width="1" height="1" fill="#3a7fa3"/><rect x="13" y="2" width="1" height="1" fill="#3a7fa3"/><rect x="14" y="2" width="1" height="1" fill="#ff6171"/><rect x="15" y="2" width="1" height="1" fill="#3a7fa3"/><rect x="0" y="3" width="1" height="1" fill="#3a7fa3"/><rect x="1" y="3" width="2" height="1" fill="#fff2a8" class="bf-lens"/><rect x="3" y="3" width="7" height="1" fill="#b8c9d4"/><rect x="10" y="3" width="4" height="1" fill="#3a7fa3"/><rect x="14" y="3" width="1" height="1" fill="#ff6171"/><rect x="15" y="3" width="13" height="1" fill="#3a7fa3"/><rect x="0" y="4" width="1" height="1" fill="#3a7fa3"/><rect x="1" y="4" width="1" height="1" fill="#ffffff" class="bf-lens"/><rect x="2" y="4" width="1" height="1" fill="#fff2a8" class="bf-lens"/><rect x="3" y="4" width="7" height="1" fill="#b8c9d4"/><rect x="10" y="4" width="1" height="1" fill="#6a8798"/><rect x="11" y="4" width="16" height="1" fill="#b8c9d4"/><rect x="27" y="4" width="1" height="1" fill="#3a7fa3"/><rect x="0" y="5" width="1" height="1" fill="#3a7fa3"/><rect x="1" y="5" width="1" height="1" fill="#ffffff" class="bf-lens"/><rect x="2" y="5" width="1" height="1" fill="#fff2a8" class="bf-lens"/><rect x="3" y="5" width="7" height="1" fill="#b8c9d4"/><rect x="10" y="5" width="1" height="1" fill="#6a8798"/><rect x="11" y="5" width="4" height="1" fill="#2f4252"/><rect x="15" y="5" width="1" height="1" fill="#3a7fa3"/><rect x="16" y="5" width="2" height="1" fill="#2f4252"/><rect x="18" y="5" width="1" height="1" fill="#3a7fa3"/><rect x="19" y="5" width="2" height="1" fill="#2f4252"/><rect x="21" y="5" width="1" height="1" fill="#3a7fa3"/><rect x="22" y="5" width="2" height="1" fill="#2f4252"/><rect x="24" y="5" width="3" height="1" fill="#6a8798"/><rect x="27" y="5" width="1" height="1" fill="#3a7fa3"/><rect x="0" y="6" width="1" height="1" fill="#3a7fa3"/><rect x="1" y="6" width="1" height="1" fill="#ffffff" class="bf-lens"/><rect x="2" y="6" width="1" height="1" fill="#fff2a8" class="bf-lens"/><rect x="3" y="6" width="8" height="1" fill="#6a8798"/><rect x="11" y="6" width="4" height="1" fill="#2f4252"/><rect x="15" y="6" width="1" height="1" fill="#3a7fa3"/><rect x="16" y="6" width="2" height="1" fill="#2f4252"/><rect x="18" y="6" width="1" height="1" fill="#3a7fa3"/><rect x="19" y="6" width="2" height="1" fill="#2f4252"/><rect x="21" y="6" width="1" height="1" fill="#3a7fa3"/><rect x="22" y="6" width="2" height="1" fill="#2f4252"/><rect x="24" y="6" width="3" height="1" fill="#6a8798"/><rect x="27" y="6" width="1" height="1" fill="#3a7fa3"/><rect x="0" y="7" width="1" height="1" fill="#3a7fa3"/><rect x="1" y="7" width="1" height="1" fill="#ffffff" class="bf-lens"/><rect x="2" y="7" width="1" height="1" fill="#fff2a8" class="bf-lens"/><rect x="3" y="7" width="24" height="1" fill="#6a8798"/><rect x="27" y="7" width="1" height="1" fill="#3a7fa3"/><rect x="0" y="8" width="1" height="1" fill="#3a7fa3"/><rect x="1" y="8" width="2" height="1" fill="#fff2a8" class="bf-lens"/><rect x="3" y="8" width="7" height="1" fill="#6a8798"/><rect x="10" y="8" width="18" height="1" fill="#3a7fa3"/><rect x="0" y="9" width="3" height="1" fill="#3a7fa3"/><rect x="3" y="9" width="7" height="1" fill="#6a8798"/><rect x="10" y="9" width="1" height="1" fill="#3a7fa3"/><rect x="2" y="10" width="1" height="1" fill="#3a7fa3"/><rect x="3" y="10" width="7" height="1" fill="#6a8798"/><rect x="10" y="10" width="1" height="1" fill="#3a7fa3"/><rect x="2" y="11" width="9" height="1" fill="#3a7fa3"/></svg>
+                        <span id="flashlightHint">Click to turn on</span>
+                    </button>
+
+                    <!-- Level 1 feedback + time alerts (controlled by mission.js) -->
+                    <div id="foundCheck" class="found-check l1-only" aria-hidden="true"><svg class="check-svg" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true"><rect x="10" y="1" width="2" height="1" fill="#48e2a2"/><rect x="9" y="2" width="3" height="1" fill="#48e2a2"/><rect x="8" y="3" width="4" height="1" fill="#48e2a2"/><rect x="0" y="4" width="2" height="1" fill="#48e2a2"/><rect x="7" y="4" width="4" height="1" fill="#48e2a2"/><rect x="0" y="5" width="3" height="1" fill="#48e2a2"/><rect x="6" y="5" width="4" height="1" fill="#48e2a2"/><rect x="1" y="6" width="3" height="1" fill="#48e2a2"/><rect x="5" y="6" width="4" height="1" fill="#48e2a2"/><rect x="2" y="7" width="6" height="1" fill="#48e2a2"/><rect x="3" y="8" width="4" height="1" fill="#48e2a2"/><rect x="4" y="9" width="2" height="1" fill="#48e2a2"/></svg></div>
+                    <div id="timeVignette" class="time-vignette l1-only" aria-hidden="true"></div>
+                    <div id="bigTimer" class="big-timer l1-only" data-state="ok" aria-hidden="true">
+                        <small>TIME LEFT</small>
+                        <strong id="bigTimerValue">60</strong>
+                        <span>SEC</span>
+                    </div>
+                    <div id="timeToast" class="time-toast l1-only" data-state="warn" role="status" aria-live="assertive"></div>
+
+                    <!-- JavaScript positions this button using level.hotspot [left%, top%]. -->
+                    <button id="hazardMarker" class="hazard-marker" type="button" aria-label="Identify this hazard">
+                        <i></i>
+                        <span>Identify</span>
+                    </button>
+
+                    <!-- Inspect mode (after answering): lights on, hazard checked, buttons to go on (controlled by quiz.js). -->
+                    <div id="inspectBar" class="inspect-bar">
+                        <button id="inspectBack" class="pixel-btn pixel-blue" type="button">Show Result</button>
+                        <button id="inspectNext" class="pixel-btn pixel-green" type="button">Next Level</button>
+                    </div>
+
+                    <p class="scene-tip">Move or drag to inspect · Select the marker on the exact hazard</p>
+                    <div class="scene-tools" aria-label="Inspection tools">
+                        <button id="flashlightButton" type="button"><img class="px-icon" src="assets/icons/flashlight.svg" alt=""> Flashlight</button>
+                        <button id="zoomButton" type="button"><img class="px-icon" src="assets/icons/search.svg" alt=""> Zoom</button>
+                    </div>
+                </div>
+
+                <!-- Mission information and answer panel. -->
+                <aside class="mission-panel">
+                    <small id="phaseLabel">SITE INSPECTION</small>
+                    <h2 id="missionTitle"></h2>
+                    <p id="missionDescription"></p>
+
+                    <div class="evidence-panel">
+                        <strong>Evidence collected</strong>
+                        <span id="evidenceText">Nothing yet</span>
+                    </div>
+
+                    <div id="answerList" class="answer-list"></div>
+                    <button id="actionButton" class="button button-primary full-width" type="button" disabled>
+                        Identify Hazard
+                    </button>
+                    <!-- Shown only on the result pop-up (controlled by quiz.js + CSS). -->
+                    <button id="inspectButton" class="button full-width" type="button">Inspect the Area</button>
+                </aside>
+            </div>
+        </section>
+
+        <!-- RESULT SCREEN: Displays the final score and an answer-by-answer review. -->
+        <section id="resultScreen" class="screen content-screen">
+            <div class="result-card" data-tier="0">
+                <div class="result-head">
+                    <div class="trophy" aria-hidden="true"><img class="px-icon px-xl" src="assets/icons/trophy.svg" alt=""></div>
+                    <small class="result-tag">SIMULATION COMPLETE</small>
+                    <h1>Laboratory Safety Report</h1>
+                    <div class="result-scientist" id="resultScientist" hidden><span class="rs-av" id="resultAvatar"></span><span>Scientist</span><b id="resultScientistName"></b></div>
+                    <p id="printMeta" class="print-only"></p>
+                    <div class="result-rank" id="resultRank">Lab Safety Master</div>
+                    <div class="result-stars" id="resultStars" role="img" aria-label=""></div>
+                    <p class="result-msg" id="resultMsg"></p>
+                </div>
+
+                <div class="result-score">
+                    <small>FINAL SCORE</small>
+                    <strong id="finalScore">0</strong><em id="maxScore">/500</em>
+                </div>
+
+                <div class="result-stats">
+                    <div class="stat-box"><strong id="statCorrect">0/5</strong><span>Correct</span></div>
+                    <div class="stat-box"><strong id="statAccuracy">0%</strong><span>Accuracy</span></div>
+                    <div class="stat-box"><strong id="statTime">0s</strong><span>Total time</span></div>
+                </div>
+
+                <h3 class="result-h"><img class="px-icon" src="assets/icons/book_red.svg" alt="">Zone-by-zone review</h3>
+                <div id="answerReview" class="answer-review"></div>
+
+                <div class="result-actions">
+                    <button id="restartButton" class="pixel-btn pixel-green" type="button"><img class="px-icon" src="assets/icons/arrow.svg" alt=""> Play Again</button>
+                    <button id="zonesButton" class="pixel-btn pixel-blue" type="button">Back to Zones</button>
+                    <button id="printButton" class="pixel-btn pixel-blue" type="button">Print Report</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hidden placeholder: only here so script.js lookups of #howToButton do not fail. Safe to delete together with that line in script.js. -->
+        <button id="howToButton" type="button" hidden></button>
+
+        <dialog id="howToDialog" class="how-to">
+            <button id="howToX" class="dialog-close" type="button" aria-label="Close">X</button>
+            <div class="dialog-head">
+                <img class="px-icon px-lg" src="assets/icons/book.svg" alt="">
+                <div>
+                    <small>MISSION BRIEFING</small>
+                    <h2>How to Play</h2>
+                </div>
+            </div>
+            <ol class="how-steps">
+                <li><img class="px-icon" src="assets/icons/flask.svg" alt=""><span>Pick a laboratory zone.</span></li>
+                <li><img class="px-icon" src="assets/icons/search.svg" alt=""><span>Move around the scene and click the marker on the exact hazard.</span></li>
+                <li><img class="px-icon" src="assets/icons/clock.svg" alt=""><span>Choose the safest response before time runs out.</span></li>
+            </ol>
+            <button id="howToClose" class="pixel-btn pixel-green" type="button"><img class="px-icon" src="assets/icons/arrow.svg" alt=""> Enter the Training</button>
+        </dialog>
+
+        <!-- Asked before the How to Play pop-up: the scientist's name, shown on the Final Review (controlled by nav.js). -->
+        <dialog id="nameDialog" class="how-to name-dialog" aria-labelledby="nameTitle">
+            <button id="nameX" class="dialog-close" type="button" aria-label="Close">X</button>
+            <div class="dialog-head">
+                <img class="px-icon px-lg" src="assets/icons/flask.svg" alt="">
+                <div>
+                    <small>LAB REGISTRATION</small>
+                    <h2 id="nameTitle">Who is entering?</h2>
+                </div>
+            </div>
+            <p class="name-lead">Enter your name, scientist. It will appear on your safety report.</p>
+            <label class="name-label" for="scientistInput">Scientist name</label>
+            <input id="scientistInput" class="name-input" type="text" maxlength="24" placeholder="Type your name" autocomplete="name">
+
+            <span class="name-label gender-label" id="genderLabel">Are you a girl or a boy?</span>
+            <div class="gender-pick" role="group" aria-labelledby="genderLabel">
+                <button type="button" class="gp-btn" data-gender="girl" aria-pressed="false"><span class="gp-av"></span>Girl</button>
+                <button type="button" class="gp-btn" data-gender="boy" aria-pressed="false"><span class="gp-av"></span>Boy</button>
+            </div>
+            <p id="nameError" class="name-error" role="alert" hidden>Please enter your name and choose girl or boy.</p>
+            <button id="nameContinue" class="pixel-btn pixel-green" type="button"><img class="px-icon" src="assets/icons/arrow.svg" alt=""> Continue</button>
+        </dialog>
+
+        <!-- Shown when the player tries to refresh (F5 / Ctrl+R) while a mission is in progress. -->
+        <dialog id="leaveDialog" class="how-to">
+            <h2>⚠ Leave this mission?</h2>
+            <p>Refreshing the page will send you back to the start and your progress and score will be lost.</p>
+            <div class="dialog-actions">
+                <button id="leaveStay" class="pixel-btn pixel-green" type="button">Stay</button>
+                <button id="leaveReload" class="pixel-btn pixel-blue" type="button">Refresh anyway</button>
+            </div>
+        </dialog>
+    </main>
+
+    <!-- Multiple-choice pop-up backdrop (controlled by quiz.js). The question panel itself becomes the pop-up card. -->
+    <div id="answerPopup" class="answer-popup" aria-hidden="true">
+        <span class="popup-timer" id="popupTimer" data-state="ok"><img class="px-icon" src="assets/icons/clock.svg" alt=""><b id="popupTimerValue">60</b>s</span>
+    </div>
+
+    <!-- Shown when the timer runs out (controlled by mission.js). -->
+    <dialog id="timeoutDialog" class="how-to timeout" aria-labelledby="timeoutTitle">
+        <img class="px-icon px-xl" src="assets/icons/clock.svg" alt="">
+        <small>MISSION FAILED</small>
+        <h2 id="timeoutTitle">You ran out of time!</h2>
+        <p>The hazard is still out there. Head back to the zone selection and try again.</p>
+        <button id="timeoutOk" class="pixel-btn pixel-blue" type="button"><img class="px-icon" src="assets/icons/arrow.svg" alt=""> Back to Zones</button>
+    </dialog>
+
+    <!-- Zone briefing pop-up: shown after a zone is chosen, before the loading screen (controlled by loader.js). -->
+    <dialog id="briefingDialog" class="how-to briefing" aria-labelledby="briefTitle">
+        <button id="briefClose" class="dialog-close" type="button" aria-label="Close">X</button>
+
+        <div class="brief-banner" id="briefBanner">
+            <span class="brief-zone" id="briefZone">ZONE 01</span>
+            <h2 id="briefTitle">Zone briefing</h2>
+        </div>
+
+        <div class="brief-body">
+            <p class="brief-intro" id="briefIntro"></p>
+
+            <div class="brief-stats">
+                <span><img class="px-icon" src="assets/icons/clock.svg" alt=""><b id="briefTime">60</b> sec</span>
+                <span><img class="px-icon" src="assets/icons/star.svg" alt=""><b id="briefPoints">100</b> pts</span>
+                <span><img class="px-icon" src="assets/icons/search.svg" alt=""><b>1</b> hazard</span>
+            </div>
+
+            <h3 class="brief-h"><img class="px-icon" src="assets/icons/flask.svg" alt="">Objectives</h3>
+            <ul class="brief-list" id="briefObjectives"></ul>
+
+            <div class="brief-goal">
+                <img class="px-icon px-lg" src="assets/icons/trophy.svg" alt="">
+                <div>
+                    <small>GOAL</small>
+                    <span id="briefGoal"></span>
+                </div>
+            </div>
+
+            <h3 class="brief-h"><img class="px-icon" src="assets/icons/shield.svg" alt="">After you identify the hazard</h3>
+            <ol class="brief-flow" id="briefAfter"></ol>
+
+            <div class="brief-actions">
+                <button id="briefBack" class="pixel-btn pixel-blue" type="button">Back</button>
+                <button id="briefStart" class="pixel-btn pixel-green" type="button">Start Mission <img class="px-icon" src="assets/icons/arrow.svg" alt=""></button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- Loading screen shown between choosing a zone and starting the mission (controlled by loader.js). -->
+    <div id="loadingScreen" class="loading-screen" aria-hidden="true" role="status">
+        <div class="loading-box">
+            <img class="px-icon px-xl loading-flask" src="assets/icons/flask.svg" alt="">
+            <small id="loadZone">ZONE 01</small>
+            <h2 id="loadTitle">Preparing the laboratory</h2>
+            <div class="load-bar"><i></i></div>
+            <p id="loadStatus">Checking equipment…</p>
+            <p class="load-tip" id="loadTip"></p>
+        </div>
+    </div>
+
+    <!-- All game behavior is kept in a separate file for straightforward maintenance. -->
+    <script src="script.js"></script>
+    <!-- Keeps the single top tab in sync with the visible screen. -->
+    <script src="nav.js"></script>
+    <!-- Home page effects: typing headline, ambient lab details, parallax, rotating tips. -->
+    <script src="fx.js"></script>
+    <!-- Loading screen between zone selection and the mission. -->
+    <script src="loader.js"></script>
+    <!-- Level 1 mission: dark lab + flashlight, hidden hazard, time-out pop-up. -->
+    <script src="mission.js"></script>
+    <!-- Answer pop-up, answer text clean-up and confetti. -->
+    <script src="quiz.js"></script>
+    <!-- Final Review extras: Inspect the Area buttons, mood, star sparks. -->
+    <script src="result.js"></script>
+    <!-- Sound effects: button clicks, correct and incorrect answers. -->
+    <!-- Master volume (must load before the sound scripts). -->
+    <script src="volume.js"></script>
+    <script src="sfx.js"></script>
+    <!-- Background music (procedural chiptune loop). -->
+    <script src="music.js"></script>
+</body>
+</html>
